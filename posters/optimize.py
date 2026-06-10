@@ -2,19 +2,9 @@ import os
 from PIL import Image
 
 def main():
-    img_path = r"E:\+ Worlds Archive\[HUB]\Assets\FoxDenGitHub\posters\posterAlt.png"
+    img_path = r"E:\+ Worlds Archive\[HUB]\Assets\FoxDenGitHub\posters\poster.png"
     temp_path = img_path + ".tmp"
     
-    backup_path = img_path + ".bak"
-    if os.path.exists(backup_path):
-        print("Backup found. Restoring original high-resolution file first...")
-        try:
-            if os.path.exists(img_path):
-                os.remove(img_path)
-            os.rename(backup_path, img_path)
-        except Exception as e:
-            print(f"Error restoring backup: {e}")
-
     if not os.path.exists(img_path):
         print(f"Error: {img_path} does not exist.")
         return
@@ -52,16 +42,11 @@ def main():
     
     if new_size < orig_size:
         print("Optimization successful. Replacing original file...")
-        backup_path = img_path + ".bak"
-        if os.path.exists(backup_path):
-            try:
-                os.remove(backup_path)
-            except Exception as e:
-                print(f"Could not remove old backup: {e}")
         try:
-            os.rename(img_path, backup_path)
+            if os.path.exists(img_path):
+                os.remove(img_path)
             os.rename(temp_path, img_path)
-            print("Done! Replaced original file. Backup saved as .bak")
+            print("Done! Replaced original file (no backup kept).")
         except Exception as e:
             print(f"Error swapping files: {e}")
             if os.path.exists(temp_path):
