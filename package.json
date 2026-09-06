@@ -1,0 +1,7 @@
+{
+    "name": "com.myname.sharedprefabs",
+    "version": "1.0.0",
+    "displayName": "My Shared Prefabs",
+    "description": "Prefabs shared between projects",
+    "unity": "2021.3"
+}
