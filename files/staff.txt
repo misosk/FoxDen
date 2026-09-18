@@ -21,3 +21,4 @@ Szeb
 Panda
 Synthanio
 Friekidiki
+CopperTFox
