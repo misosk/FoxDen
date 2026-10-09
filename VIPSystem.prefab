@@ -139,8 +139,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: -617992517, guid: 661092b4961be7145bfbe56e1e62337b, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   Gain: 10
   Far: 40
   Near: 0
@@ -350,8 +350,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: -617992517, guid: 661092b4961be7145bfbe56e1e62337b, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   Gain: 10
   Far: 40
   Near: 0
@@ -403,14 +403,14 @@ MonoBehaviour:
   m_GameObject: {fileID: 7639578048188609081}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 73c383ee04779a744bbb2cd0bb3d2e38, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Script: {fileID: 11500000, guid: 12d71fa236a5a384ab300e9d61a44986, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 2
-    SerializedBytes:
+    SerializedFormat: 0
+    SerializedBytes: 
     ReferencedUnityObjects: []
-    SerializedBytesString:
+    SerializedBytesString: 
     Prefab: {fileID: 0}
     PrefabModificationsReferencedUnityObjects: []
     PrefabModifications: []
@@ -441,6 +441,14 @@ MonoBehaviour:
   - {fileID: 0}
   - {fileID: 0}
   StaffDisabledObjects: []
+  vipSpawnPoint: {fileID: 0}
+  vipSpawnDelay: 1
+  useRemoteUrls: 1
+  remoteVipUrl:
+    url: https://misosk.github.io/FoxDen/files/vip.txt
+  remoteStaffUrl:
+    url: https://misosk.github.io/FoxDen/files/staff.txt
+  retryDelay: 10
 --- !u!114 &3992005130815199793
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -451,8 +459,8 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 45115577ef41a5b4ca741ed302693907, type: 3}
-  m_Name:
-  m_EditorClassIdentifier:
+  m_Name: 
+  m_EditorClassIdentifier: 
   interactTextPlacement: {fileID: 0}
   interactText: Use
   interactTextGO: {fileID: 0}
@@ -540,8 +548,8 @@ PrefabInstance:
       propertyPath: m_text
       value: "VIPs: rnr321 * mimi0epic1234 * ipersi * untld-2232 * Cydern * Crook
         * fearofgames * smokesome * xXAshkaXx * Namelesz93 * Azurefi * Hitaes * \nXaint
-        * Fennox * Joy ˄ᆺ˄ * LukeStars * todakkoo *  t1gro * VodkaForLife
-        * CitricCanine * KimKaroo * jef67 *Yukınecute * DIEON * Grogert * ༒ＤΣΔＤ༒ＶＩＫＩＮＧ༒"
+        * Fennox * Joy \u02C4\u11BA\u02C4 * LukeStars * todakkoo *  t1gro * VodkaForLife
+        * CitricCanine * KimKaroo * jef67 *Yuk\u0131necute * DIEON * Grogert * \u0F12\uFF24\u03A3\u0394\uFF24\u0F12\uFF36\uFF29\uFF2B\uFF29\uFF2E\uFF27\u0F12"
       objectReference: {fileID: 0}
     - target: {fileID: 8834866317162805269, guid: 488a839ed522a474d83109c168bbe133,
         type: 3}

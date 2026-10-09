@@ -5,7 +5,9 @@ using VRC.SDKBase;
 /// <summary>
 /// Animovaná ikonka, ktorá stojí na poličke a vznáša sa nad hlavou konkrétneho hráča,
 /// keď je v inštancii. Cieľový hráč si ju vie chytiť za neviditeľný pickup v bruchu
-/// a posunúť relatívne k svojej hlave; offset sa synchronizuje ostatným.
+/// a posunúť relatívne k svojej hlave; offset sa synchronizuje ostatným. Keď ju
+/// pustí pri jej mieste na poličke, ikonka sa tam zacvakne a zostane odložená,
+/// kým ju cieľový hráč znovu nechytí.
 ///
 /// Pozícia hlavy sa číta z KOSTI hlavy avatara (GetBonePosition), nie z tracking dát.
 /// Kosť je tam, kde je avatar naozaj vykreslený na danom klientovi, takže to sedí aj
@@ -30,7 +32,7 @@ public class YukineHeadIcon : UdonSharpBehaviour
     [Tooltip("Objekt, ktorý sa reálne hýbe (obsahuje Model s Animatorom).")]
     public Transform follower;
 
-    [Tooltip("Miesto na poličke, kde ikonka stojí, keď cieľový hráč nie je v inštancii.")]
+    [Tooltip("Miesto na poličke, kde ikonka stojí. Ak nie je nastavené, použije sa jej štartovacia poloha.")]
     public Transform shelfAnchor;
 
     [Tooltip("Capsule collider + VRC_Pickup. Aktívny len na klientovi cieľového hráča.")]
@@ -62,6 +64,10 @@ public class YukineHeadIcon : UdonSharpBehaviour
     [Tooltip("Kde na ikonke sedí úchyt (v lokálnom priestore followera) - cca brucho.")]
     public Vector3 handleLocalOffset = new Vector3(0f, 0.15f, 0f);
 
+    [Header("Odloženie na poličku")]
+    [Tooltip("Ako blízko k shelfAnchor treba ikonku pustiť, aby sa na miesto zacvakla.")]
+    public float shelfSnapDistance = 0.3f;
+
     [Header("Vyhladenie")]
     [Tooltip("Čas dobehnutia nad hlavu. Vyššie = lenivejšie.")]
     public float followSmoothTime = 0.25f;
@@ -77,6 +83,7 @@ public class YukineHeadIcon : UdonSharpBehaviour
 
     // ---- sieť -------------------------------------------------------------
     [UdonSynced] private Vector3 _syncedOffset;
+    [UdonSynced] private bool _syncedDocked;
 
     // ---- stav -------------------------------------------------------------
     private Vector3 _offset;
@@ -86,16 +93,21 @@ public class YukineHeadIcon : UdonSharpBehaviour
     private bool _handleActive;
     private Vector3 _vel;
     private Quaternion _fixedRotation;
+    private Vector3 _fallbackShelfPosition;
     private VRCPlayerApi[] _playerBuffer = new VRCPlayerApi[1];
     private bool _offsetIsCustom;      // true az ked si hrac ikonku sam potiahol
+    private bool _isDocked;            // true = ciel ju odlozil na shelfAnchor
     private float _debugTimer;
 
     void Start()
     {
         _offset = defaultHeadOffset;
         _syncedOffset = defaultHeadOffset;
+        _isDocked = false;
+        _syncedDocked = false;
 
         if (follower == null) follower = transform;
+        _fallbackShelfPosition = follower.position;
         _fixedRotation = shelfAnchor != null ? shelfAnchor.rotation : follower.rotation;
         follower.rotation = _fixedRotation;
 
@@ -105,8 +117,8 @@ public class YukineHeadIcon : UdonSharpBehaviour
         RescanPlayers();
         SetHandleActive(false);
 
-        if (shelfAnchor != null && _target == null)
-            follower.position = shelfAnchor.position;
+        if (_target == null)
+            follower.position = ShelfPosition();
     }
 
     public override void OnPlayerJoined(VRCPlayerApi player) { RescanPlayers(); }
@@ -115,7 +127,9 @@ public class YukineHeadIcon : UdonSharpBehaviour
     public override void OnDeserialization()
     {
         _offset = _syncedOffset;
+        _isDocked = _syncedDocked;
         _offsetIsCustom = true;   // owner uz offset nastavil, default sa nepouziva
+        _vel = Vector3.zero;
     }
 
     /// <summary>
@@ -132,8 +146,7 @@ public class YukineHeadIcon : UdonSharpBehaviour
         {
             // Nikto - vraciame sa na poličku.
             SetHandleActive(false);
-            if (shelfAnchor != null)
-                MoveTowards(shelfAnchor.position, shelfSmoothTime);
+            MoveTowards(ShelfPosition(), shelfSmoothTime);
             follower.rotation = _fixedRotation;
             return;
         }
@@ -149,6 +162,14 @@ public class YukineHeadIcon : UdonSharpBehaviour
         bool held = _localIsTarget && pickup != null && pickup.IsHeld;
         if (held)
         {
+            // Chytenie odlepí ikonku z poličky. Sieťový stav publikujeme až pri
+            // pustení, rovnako ako offset, aby sme neposielali zmenu každý frame.
+            if (!_wasHeld && _isDocked)
+            {
+                _isDocked = false;
+                _vel = Vector3.zero;
+            }
+
             // Počas držania vedie úchyt - offset čítame z neho.
             Vector3 raw = grabHandle.transform.position - headPos;
             // rucny clamp - menej zavislosti na Udon expose zozname ako ClampMagnitude
@@ -161,12 +182,26 @@ public class YukineHeadIcon : UdonSharpBehaviour
         }
         else
         {
-            MoveTowards(headPos + _offset, followSmoothTime);
+            // Pri pustení najprv rozhodni, či ikonku zacvaknúť na poličku.
+            if (_wasHeld)
+            {
+                _isDocked = ShouldSnapToShelf();
+                if (_isDocked)
+                {
+                    follower.position = ShelfPosition();
+                    _vel = Vector3.zero;
+                }
+                PublishState();
+            }
+
+            if (_isDocked)
+                MoveTowards(ShelfPosition(), shelfSmoothTime);
+            else
+                MoveTowards(headPos + _offset, followSmoothTime);
+
             if (_handleActive)
                 grabHandle.transform.position = follower.position + RotatedHandleOffset();
         }
-
-        if (_wasHeld && !held) PublishOffset();
         _wasHeld = held;
 
         follower.rotation = _fixedRotation;
@@ -251,13 +286,31 @@ public class YukineHeadIcon : UdonSharpBehaviour
         return defaultHeadOffset * (eye / 1.6f);
     }
 
-    private void PublishOffset()
+    private bool ShouldSnapToShelf()
+    {
+        if (grabHandle == null) return false;
+
+        // Follower počas držania dobieha ruku cez SmoothDamp, preto testujeme
+        // priamo cieľovú polohu odvodenú z úchytu, nie mierne oneskorený follower.
+        Vector3 releasedFollowerPosition = grabHandle.transform.position - RotatedHandleOffset();
+        float snap = shelfSnapDistance;
+        if (snap < 0f) snap = 0f;
+        return (releasedFollowerPosition - ShelfPosition()).sqrMagnitude <= snap * snap;
+    }
+
+    private Vector3 ShelfPosition()
+    {
+        return shelfAnchor != null ? shelfAnchor.position : _fallbackShelfPosition;
+    }
+
+    private void PublishState()
     {
         VRCPlayerApi local = Networking.LocalPlayer;
         if (local == null) return;
         if (!Networking.IsOwner(local, gameObject))
             Networking.SetOwner(local, gameObject);
         _syncedOffset = _offset;
+        _syncedDocked = _isDocked;
         RequestSerialization();
     }
 
