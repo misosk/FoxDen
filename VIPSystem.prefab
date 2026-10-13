@@ -407,7 +407,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   serializationData:
-    SerializedFormat: 0
+    SerializedFormat: 2
     SerializedBytes: 
     ReferencedUnityObjects: []
     SerializedBytesString: 
@@ -443,6 +443,13 @@ MonoBehaviour:
   StaffDisabledObjects: []
   vipSpawnPoint: {fileID: 0}
   vipSpawnDelay: 1
+  personalSpawnPlayerName: 
+  personalSpawnPoint: {fileID: 0}
+  personalSpawnTestMode: 0
+  personalSpawnTestName: '[2] Local Player'
+  personalSpawnMode: 2
+  personalSpawnListener: {fileID: 0}
+  personalSpawnEvent: OnPersonalSpawn
   useRemoteUrls: 1
   remoteVipUrl:
     url: https://misosk.github.io/FoxDen/files/vip.txt

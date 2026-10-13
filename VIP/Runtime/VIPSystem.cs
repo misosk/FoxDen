@@ -53,6 +53,19 @@ public class VIPSystem : UdonSharpBehaviour
     [Tooltip("Seconds to wait after joining before teleporting, so VRChat's own spawn placement doesn't override it.")]
     public float vipSpawnDelay = 1f;
 
+    [Header("Personal Spawn (optional)")]
+    [Tooltip("This display name spawns at 'Personal Spawn Point' instead of 'VIP Spawn Point'. Leave empty to disable.")]
+    public string personalSpawnPlayerName = "";
+    public Transform personalSpawnPoint;
+    [Tooltip("Test mode: the player named 'Test Player Name' is treated like 'Personal Spawn Player Name' (spawn point + listener). Meant for ClientSim; turn it off before uploading.")]
+    public bool personalSpawnTestMode = false;
+    public string personalSpawnTestName = "[2] Remote Player";
+    [Tooltip("Where the personal-spawn player spawns / respawns: 0 = world default spawn, 1 = VIP Spawn Point, 2 = Personal Spawn Point (+ listener event on the first spawn). Changed at runtime by a menu slider.")]
+    public int personalSpawnMode = 2;
+    [Tooltip("Optional behaviour that gets SendCustomEvent('Personal Spawn Event') once, right after the first personal-spawn teleport of this session (local player only).")]
+    public UdonSharpBehaviour personalSpawnListener;
+    public string personalSpawnEvent = "OnPersonalSpawn";
+
     [Header("Remote Sync (GitHub Pages)")]
     public bool useRemoteUrls = true;
     public VRCUrl remoteVipUrl = new VRCUrl("https://misosk.github.io/FoxDen/files/vip.txt");
@@ -70,6 +83,7 @@ public class VIPSystem : UdonSharpBehaviour
     private bool _localIsVip = false;
     private bool _localJoined = false;
     private bool _vipSpawnScheduled = false;
+    private bool _personalSpawnAnnounced = false;
 
     private void Start()
     {
@@ -216,7 +230,7 @@ public class VIPSystem : UdonSharpBehaviour
     private void TryScheduleVipSpawn()
     {
         if (_vipSpawnScheduled || !_localIsVip || !_localJoined) return;
-        if (!Utilities.IsValid(vipSpawnPoint)) return;
+        if (!Utilities.IsValid(GetSpawnTarget(Networking.LocalPlayer))) return;
 
         _vipSpawnScheduled = true;
         SendCustomEventDelayedSeconds(nameof(_TeleportToVipSpawn), vipSpawnDelay);
@@ -225,9 +239,38 @@ public class VIPSystem : UdonSharpBehaviour
     public void _TeleportToVipSpawn()
     {
         VRCPlayerApi player = Networking.LocalPlayer;
-        if (!_localIsVip || !Utilities.IsValid(player) || !Utilities.IsValid(vipSpawnPoint)) return;
+        if (!_localIsVip || !Utilities.IsValid(player)) return;
 
-        player.TeleportTo(vipSpawnPoint.position, vipSpawnPoint.rotation);
+        Transform target = GetSpawnTarget(player);
+        if (!Utilities.IsValid(target)) return;
+
+        player.TeleportTo(target.position, target.rotation);
+
+        // Only the first personal-spawn teleport announces itself, not later respawns.
+        if (target == personalSpawnPoint && !_personalSpawnAnnounced && Utilities.IsValid(personalSpawnListener))
+        {
+            _personalSpawnAnnounced = true;
+            personalSpawnListener.SendCustomEvent(personalSpawnEvent);
+        }
+    }
+
+    private Transform GetSpawnTarget(VRCPlayerApi player)
+    {
+        if (!Utilities.IsValid(player)) return vipSpawnPoint;
+        if (IsPersonalSpawnPlayer(player.displayName))
+        {
+            // 0 = world default spawn: no teleport at all.
+            if (personalSpawnMode <= 0) return null;
+            if (personalSpawnMode == 1) return vipSpawnPoint;
+            if (Utilities.IsValid(personalSpawnPoint)) return personalSpawnPoint;
+        }
+        return vipSpawnPoint;
+    }
+
+    private bool IsPersonalSpawnPlayer(string displayName)
+    {
+        if (!string.IsNullOrEmpty(personalSpawnPlayerName) && displayName == personalSpawnPlayerName) return true;
+        return personalSpawnTestMode && !string.IsNullOrEmpty(personalSpawnTestName) && displayName == personalSpawnTestName;
     }
 
     // VRChat respawn (menu respawn, falling out of the world) would put a VIP back at the normal spawn.
