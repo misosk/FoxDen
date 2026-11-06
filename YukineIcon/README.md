@@ -9,7 +9,7 @@ Prefab je súčasťou lokálneho UPM balíka `com.myname.sharedprefabs`, takže 
 verziu používajú všetky svety, ktoré majú v `Packages/manifest.json`:
 
 ```json
-"com.myname.sharedprefabs": "file:D:/Worlds/SharedPrefabs"
+"com.myname.sharedprefabs": "file:E:/Worlds Work/SharedPrefabs"
 ```
 
 ## Štruktúra
@@ -120,7 +120,7 @@ konfigurovateľný nástroj namiesto kopírovania triedy.
 - Po verejnej zmene balíka zvýš verziu v koreňovom `package.json`, aby bola
   aktualizácia jasne rozpoznateľná vo všetkých svetoch.
 - Neupravuj iba inštanciu prefabu v jednej scéne. Zdroj pravdy je
-  `D:/Worlds/SharedPrefabs/YukineIcon/YukineIcon.prefab`.
+  `E:/Worlds Work/SharedPrefabs/YukineIcon/YukineIcon.prefab`.
 
 ## Kontrolný zoznam pred použitím
 

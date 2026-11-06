@@ -2,7 +2,7 @@
 
 ## 1. Prehľad a Zámer (Executive Summary)
 Tento dokument slúži ako kompletný a vyčerpávajúci návod na implementáciu VIP systému pre VRChat svety.
-Systém prepája **VRChat Group** (`grp_194a467e-b312-4596-89c2-c51c841ebb9e`), **GitHub Pages** repozitára `FoxDen` (`https://misosk.github.io/FoxDen/`), zdieľaný Unity balíček **SharedPrefabs** (`D:\Worlds\SharedPrefabs`) a samotnú scénu vo svete (`HomeByTheSea.unity`).
+Systém prepája **VRChat Group** (`grp_194a467e-b312-4596-89c2-c51c841ebb9e`), **GitHub Pages** repozitára `FoxDen` (`https://misosk.github.io/FoxDen/`), zdieľaný Unity balíček **SharedPrefabs** (`E:\Worlds Work\SharedPrefabs`) a samotnú scénu vo svete (`HomeByTheSea.unity`).
 
 ---
 
@@ -13,24 +13,24 @@ Systém prepája **VRChat Group** (`grp_194a467e-b312-4596-89c2-c51c841ebb9e`), 
 - **VRChat API endpoint:** Endpoint `https://vrchat.com/api/1/...` nie je možné volať priamo z hry cez `VRCStringDownloader`, pretože vyžaduje autorizačnú cookie / token a Udon nepovolí autorizačné hlavičky.
 - **Riešenie:**
   1. **Editor:** V Unity Editori sa cez VRChat SDK prihlásenie (`APIUser.CurrentUser` a existujúce auth cookies) zavolá VRChat API.
-  2. **Storage / Hosting:** Zoznamy sa uložia do `D:\Worlds\SharedPrefabs\files\` a cez Git pushnú na GitHub Pages:
+  2. **Storage / Hosting:** Zoznamy sa uložia do `E:\Worlds Work\SharedPrefabs\files\` a cez Git pushnú na GitHub Pages:
      - `https://misosk.github.io/FoxDen/files/vip.txt`
      - `https://misosk.github.io/FoxDen/files/staff.txt`
   3. **Runtime:** V hre Udon skript použije `VRCStringDownloader.LoadUrl(...)` z týchto GitHub Pages adries, pričom lokálne súbory slúžia ako offline fallback.
 
 ### B. Balíček SharedPrefabs (`com.myname.sharedprefabs`)
-- **Cesta na disku:** `D:\Worlds\SharedPrefabs`
+- **Cesta na disku:** `E:\Worlds Work\SharedPrefabs`
 - **Git Remote:** `https://github.com/misosk/FoxDen.git` (branch `main`)
 - **Web URL (GitHub Pages):** `https://misosk.github.io/FoxDen/`
 - **Konfigurácia v Unity:**
-  - V `Packages/manifest.json`: `"com.myname.sharedprefabs": "file:D:/Worlds/SharedPrefabs"`
-  - V `Packages/packages-lock.json`: `"com.myname.sharedprefabs": { "version": "file:D:/Worlds/SharedPrefabs", "depth": 0, "source": "local" }`
+  - V `Packages/manifest.json`: `"com.myname.sharedprefabs": "file:E:/Worlds Work/SharedPrefabs"`
+  - V `Packages/packages-lock.json`: `"com.myname.sharedprefabs": { "version": "file:E:/Worlds Work/SharedPrefabs", "depth": 0, "source": "local" }`
 - **Súbory a GUIDs v SharedPrefabs:**
-  - `D:\Worlds\SharedPrefabs\VIP Names.prefab`: GUID `488a839ed522a474d83109c168bbe133`
-  - `D:\Worlds\SharedPrefabs\VIPTest.txt`: GUID `89a115a396048a84c82dea4a6d85e1b0`
-  - `D:\Worlds\SharedPrefabs\StaffList.txt`: GUID `01e18e2208e0f874d9c3aa1914c3066e`
-  - `D:\Worlds\SharedPrefabs\files\whitelist.txt`: GUID `whitelist.txt.meta`
-  - Nové súbory pre export: `D:\Worlds\SharedPrefabs\files\vip.txt` a `D:\Worlds\SharedPrefabs\files\staff.txt`
+  - `E:\Worlds Work\SharedPrefabs\VIP Names.prefab`: GUID `488a839ed522a474d83109c168bbe133`
+  - `E:\Worlds Work\SharedPrefabs\VIPTest.txt`: GUID `89a115a396048a84c82dea4a6d85e1b0`
+  - `E:\Worlds Work\SharedPrefabs\StaffList.txt`: GUID `01e18e2208e0f874d9c3aa1914c3066e`
+  - `E:\Worlds Work\SharedPrefabs\files\whitelist.txt`: GUID `whitelist.txt.meta`
+  - Nové súbory pre export: `E:\Worlds Work\SharedPrefabs\files\vip.txt` a `E:\Worlds Work\SharedPrefabs\files\staff.txt`
 
 ### C. Existujúci stav v projekte `[HOME] 2.0 PC`
 - **Skript VIPSystem:**
@@ -82,7 +82,7 @@ Systém prepája **VRChat Group** (`grp_194a467e-b312-4596-89c2-c51c841ebb9e`), 
                     |  Unity Editor Tool (VRChatGroupVipSyncWindow.cs) |
                     |  - Fetch cez VRC SDK Session / API               |
                     |  - Pridá "[1] Local Player" a "[2] Local Player" |
-                    |  - Uloží do D:\Worlds\SharedPrefabs\files\       |
+                    |  - Uloží do E:\Worlds Work\SharedPrefabs\files\       |
                     |  - Git Commit & Push na GitHub                   |
                     +------------------------+-------------------------+
                                              |
@@ -151,18 +151,18 @@ Vytvoriť/aktualizovať kód `VIPSystem.cs`:
    - V `OnStringLoadError(IVRCStringDownload result)`:
      - Logovanie chyby a ponechanie offline zoznamu.
 
-### KROK 2: Umiestnenie `VIPSystem.prefab` do `D:\Worlds\SharedPrefabs`
-1. Vytvoriť v `D:\Worlds\SharedPrefabs\VIPSystem.prefab` čistý prefab:
+### KROK 2: Umiestnenie `VIPSystem.prefab` do `E:\Worlds Work\SharedPrefabs`
+1. Vytvoriť v `E:\Worlds Work\SharedPrefabs\VIPSystem.prefab` čistý prefab:
    - Root: `VIPSystem` (obsahuje UdonBehaviour + VIPSystem U# script).
-   - Odkazy na lokálne súbory: `D:\Worlds\SharedPrefabs\files\vip.txt` (alebo `VIPTest.txt`) a `StaffList.txt`.
+   - Odkazy na lokálne súbory: `E:\Worlds Work\SharedPrefabs\files\vip.txt` (alebo `VIPTest.txt`) a `StaffList.txt`.
    - Child objekty:
      - `JoinSounds` (s `VIPMemberJoinSound` a `StaffMemberJoinSound`).
-     - `VIP names` (inštancia prefabu `D:\Worlds\SharedPrefabs\VIP Names.prefab`).
+     - `VIP names` (inštancia prefabu `E:\Worlds Work\SharedPrefabs\VIP Names.prefab`).
      - `VIP system` (marker objekt).
 2. Týmto je prefab plne autonómny a použiteľný v akomkoľvek projekte obsahujúcom package `com.myname.sharedprefabs`.
 
 ### KROK 3: Výmena GameObjektu v scéne `HomeByTheSea.unity`
-1. V scéne nahradiť rozbalený objekt `VIPSystem` (ID `8797954786766041244`) za inštanciu nového prefabu `D:\Worlds\SharedPrefabs\VIPSystem.prefab` pod otcom `4549332498214353207`.
+1. V scéne nahradiť rozbalený objekt `VIPSystem` (ID `8797954786766041244`) za inštanciu nového prefabu `E:\Worlds Work\SharedPrefabs\VIPSystem.prefab` pod otcom `4549332498214353207`.
 2. Do inštancie preniesť špecifické scéne väzby (Prefab Modifications):
    - `displayMemberStatus` -> `{fileID: 5671297078655721931}`
    - `displayGuestNameUI` -> `{fileID: 3404768139384754396}`
@@ -172,17 +172,17 @@ Vytvoriť/aktualizovať kód `VIPSystem.cs`:
    - `StaffEnabledObjects` -> `[160655348, 289837392]`
 
 ### KROK 4: Unity Editor Tool (`VRChatGroupVipSyncWindow.cs`)
-Vytvoriť skript v `D:\Worlds\SharedPrefabs\Editor\VRChatGroupVipSyncWindow.cs` (alebo v projekte pod `Editor/`):
+Vytvoriť skript v `E:\Worlds Work\SharedPrefabs\Editor\VRChatGroupVipSyncWindow.cs` (alebo v projekte pod `Editor/`):
 - **Menu položka:** `VRChat Tools > VIP Group Sync`
 - **Konštanty:**
   - Group ID: `grp_194a467e-b312-4596-89c2-c51c841ebb9e`
   - VIP Role Name: `VIP`
   - Staff Role Name: `Staff`
   - Výstupné cesty:
-    - `D:\Worlds\SharedPrefabs\files\vip.txt`
-    - `D:\Worlds\SharedPrefabs\files\staff.txt`
-    - `D:\Worlds\SharedPrefabs\VIPTest.txt` (spätná kompatibilita)
-    - `D:\Worlds\SharedPrefabs\StaffList.txt` (spätná kompatibilita)
+    - `E:\Worlds Work\SharedPrefabs\files\vip.txt`
+    - `E:\Worlds Work\SharedPrefabs\files\staff.txt`
+    - `E:\Worlds Work\SharedPrefabs\VIPTest.txt` (spätná kompatibilita)
+    - `E:\Worlds Work\SharedPrefabs\StaffList.txt` (spätná kompatibilita)
 - **Logika sťahovania z VRChat API:**
   - Zavolá VRChat API: `GET https://vrchat.com/api/1/groups/grp_194a467e-b312-4596-89c2-c51c841ebb9e/roles` na zistenie Role ID pre roly "VIP" a "Staff".
   - Zavolá `GET https://vrchat.com/api/1/groups/grp_194a467e-b312-4596-89c2-c51c841ebb9e/members?roleId={roleId}&n=100`.
@@ -194,7 +194,7 @@ Vytvoriť skript v `D:\Worlds\SharedPrefabs\Editor\VRChatGroupVipSyncWindow.cs` 
     ```
   - Zapíše UTF-8 súbory do repozitára.
 - **Tlačidlo Git Push:**
-  - Vykoná proces `git` v adresári `D:\Worlds\SharedPrefabs`:
+  - Vykoná proces `git` v adresári `E:\Worlds Work\SharedPrefabs`:
     ```powershell
     git add files/vip.txt files/staff.txt VIPTest.txt StaffList.txt
     git commit -m "Update VIP and Staff member lists from VRChat Group"
